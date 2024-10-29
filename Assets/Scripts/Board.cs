@@ -10,6 +10,9 @@ public sealed class Board : MonoBehaviour
 {
     public static Board Instance { get; private set; }
 
+    [SerializeField] private AudioClip pop_sound;
+    [SerializeField] private AudioSource audio_source;
+
     public Row[] rows;
     public Tile[,] tiles { get; private set; }
     public int width => tiles.GetLength(0);
@@ -101,7 +104,7 @@ public sealed class Board : MonoBehaviour
 
     private async void Pop()
     {
-        for (int i =0; i < height; i++)
+        for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
@@ -118,7 +121,12 @@ public sealed class Board : MonoBehaviour
                     deflate_sequence.Join(neighbour_tile.icon.transform.DOScale(Vector3.zero, swap_duration));
                 }
 
+                audio_source.PlayOneShot(pop_sound);
+
+                Score.Instance.score += tile.item.value * neighbour_tiles.Count;
+
                 await deflate_sequence.Play().AsyncWaitForCompletion();
+
 
                 var inflate_sequence = DOTween.Sequence();
 
@@ -130,6 +138,9 @@ public sealed class Board : MonoBehaviour
                 }
 
                 await inflate_sequence.Play().AsyncWaitForCompletion();
+
+                i = 0;
+                j = 0;
             }
         }
     }
